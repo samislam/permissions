@@ -1,10 +1,14 @@
 {
-  "name": "permissions",
+  "name": "@samislam/permissions",
   "version": "1.0.0",
   "description": "permissions is a small and simple nodejs utility for controlling user actions permissions based on a predefined set of rules",
   "main": "index.js",
   "scripts": {
     "test": "nodemon -q ./tests/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samislam/permissions.git"
   },
   "keywords": [
     "permissions",
@@ -14,6 +18,10 @@
     "nodejs-permissions"
   ],
   "author": "Islam Yamor",
+  "bugs": {
+    "url": "https://github.com/samislam/permissions/issues"
+  },
+  "homepage": "https://github.com/samislam/permissions#readme",
   "license": "ISC",
   "devDependencies": {
     "nodemon": "^2.0.19"
