@@ -1,0 +1,1 @@
+this method is used to allow or deny users to access a certain route
