@@ -1,1 +1,6 @@
-this method is used to allow or deny users to access a certain route
+**permissions** is a small and simple nodejs utility for controlling user actions permissions based on a predefined set of rules.
+
+# Examples:
+
+# API:
+

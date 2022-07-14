@@ -1,47 +1,75 @@
 /*=============================================
 =            importing dependencies            =
 =============================================*/
-const expressAsyncHandler = require('express-async-handler')
 const _ = require('lodash')
+const checkTypes = require('@samislam/checktypes')
+const expressAsyncHandler = require('express-async-handler')
+const sendErr = require('./utils/sendErr')
 
-/*=============================================
-=            importing modules            =
-=============================================*/
-const AppError = require('../../utils/AppError')
 /*=====  End of importing dependencies  ======*/
 
 const getValue = async (parameter, ...args) => (checkTypes.isAsycOrSyncFunc(parameter) ? await parameter(...args) : parameter)
 
-function permissionsMw(permission, options = {}) {
+const globalOptions = {
+  defaultBehaviour: 'deny', // 'grant' | 'deny'
+  denyMsg: "You don't have the permission to perform this action",
+  denyStatusCode: 401,
+  handleError: true,
+}
+
+function permissionsMw(permission, options) {
   return expressAsyncHandler(async (req, res, next) => {
-    // @param Model: MongooseModel
-    // @param bluePrint: function
-    // @param options: object | function
-    // getting the parameters values ---------------
-    let isNextCalled = false
-    const innerNext = (error) => {
-      isNextCalled = true
-      next(error)
-    }
-    const permissionValue = await getValue(permission, req, res, innerNext)
+    // @param permission: boolean | function
+    // @param options: obj | function
+    // getting the parameter values
+    const permissionValue = await getValue(permission, req)
     const optionsValue = await getValue(options, req)
-    // working with the options ---------------
+    // working with the options -----
     const chosenOptions = {}
     const defaultOptions = {
-      denyMsg: "You don't have the permission to perform this action",
-      denyStatusCode: 401,
-      defaultBehaviour() {
-        next(new AppError(chosenOptions.denyMsg, chosenOptions.denyStatusCode))
-      },
+      defaultBehaviour: globalOptions.defaultBehaviour,
+      denyMsg: globalOptions.denyMsg,
+      denyStatusCode: globalOptions.denyStatusCode,
+      handleError: globalOptions.handleError,
     }
     _.merge(chosenOptions, defaultOptions, optionsValue)
 
-    // working the logic ---------------
-    if (isNextCalled) return
-    else if (permissionValue === true) return next()
-    else if (permissionValue === false) return defaultOptions.defaultBehaviour() // default to deny access
-    else return await chosenOptions.defaultBehaviour() // default to user choice
+    const denyBehaviour = () => {
+      if (chosenOptions.handleError) return sendErr(res, chosenOptions.denyStatusCode, chosenOptions.denyMsg)
+      else throw new AppError(chosenOptions.denyMsg, chosenOptions.denyStatusCode, 'permissions_deny_error')
+    }
+    if (permissionValue === true) next()
+    else if (permissionValue === false) denyBehaviour()
+    else chosenOptions.defaultBehaviour === 'deny' ? denyBehaviour() : next()
   })
 }
 
-module.exports = { permissionsMw }
+async function permissions(permission, options) {
+  // @param permission: boolean | function
+  // @param options: object
+  // getting the parameter values
+  const permissionValue = await getValue(permission)
+  const optionsValue = await getValue(options)
+  // working with the options -----
+  const chosenOptions = {}
+  const defaultOptions = {
+    defaultBehaviour: globalOptions.defaultBehaviour,
+    denyMsg: globalOptions.denyMsg,
+    denyStatusCode: globalOptions.denyStatusCode,
+  }
+  _.merge(chosenOptions, defaultOptions, optionsValue)
+
+  const denyBehaviour = () => {
+    throw new AppError(chosenOptions.denyMsg, chosenOptions.denyStatusCode, 'permissions_deny_error')
+  }
+  if (permissionValue === true) return true
+  else if (permissionValue === false) denyBehaviour()
+  else chosenOptions.defaultBehaviour === 'deny' ? denyBehaviour() : true
+}
+
+/*----------  end of code, exporting  ----------*/
+module.exports = {
+  globalOptions,
+  permissionsMw,
+  permissions,
+}
