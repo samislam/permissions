@@ -1,29 +1,34 @@
+const { permissions, permissionsMw } = require('.')
+
 /*=============================================
 =            as an expressjs middleware            =
 =============================================*/
 
-permissions((req, res, next) => {
-  next() // grant, call next
-})
-permissions(async (req, res, next) => {
-  next(new AppError()) // deny, call next with error
-})
-permissions((req, res, next) => true) // grant, call next
-permissions(async (req, res, next) => false) // deny, call next with the default error message and the default status code
-permissions(() => {}, {
-  defaultMsg: "You don't have the permission to access this route",
-  defaultStatusCode: 401,
-  non: () => {}, // deny, call next with the default error message and the default status code
-})
+permissionsMw(undefined)
+permissionsMw(true)
+permissionsMw(false)
+permissionsMw((req) => {})
+permissionsMw(async (req) => {})
+permissionsMw(async (req) => {}, { options })
+permissionsMw(
+  async (req) => {},
+  (req) => ({ options })
+)
 
 /*=====  End of as an expressjs middleware  ======*/
 
 /*=============================================
 =            as a regular javascript function            =
 =============================================*/
-
-app.get((req, res, next) => {
-  permissions(() => {})
-})
+permissions(undefined)
+permissions(true)
+permissions(false)
+permissions(() => {})
+permissions(async () => {})
+permissions(async () => {}, { options })
+permissions(
+  async () => {},
+  () => ({ options })
+)
 
 /*=====  End of as a regular javascript function  ======*/

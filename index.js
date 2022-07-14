@@ -5,6 +5,7 @@ const _ = require('lodash')
 const checkTypes = require('@samislam/checktypes')
 const expressAsyncHandler = require('express-async-handler')
 const sendErr = require('./utils/sendErr')
+const AppError = require('./utils/AppError')
 
 /*=====  End of importing dependencies  ======*/
 
@@ -36,7 +37,7 @@ function permissionsMw(permission, options) {
 
     const denyBehaviour = () => {
       if (chosenOptions.handleError) return sendErr(res, chosenOptions.denyStatusCode, chosenOptions.denyMsg)
-      else throw new AppError(chosenOptions.denyMsg, chosenOptions.denyStatusCode, 'permissions_deny_error')
+      else next(new AppError(chosenOptions.denyMsg, chosenOptions.denyStatusCode, 'permissions_deny_error'))
     }
     if (permissionValue === true) next()
     else if (permissionValue === false) denyBehaviour()
@@ -46,7 +47,7 @@ function permissionsMw(permission, options) {
 
 async function permissions(permission, options) {
   // @param permission: boolean | function
-  // @param options: object
+  // @param options: object | function
   // getting the parameter values
   const permissionValue = await getValue(permission)
   const optionsValue = await getValue(options)
@@ -64,7 +65,7 @@ async function permissions(permission, options) {
   }
   if (permissionValue === true) return true
   else if (permissionValue === false) denyBehaviour()
-  else chosenOptions.defaultBehaviour === 'deny' ? denyBehaviour() : true
+  else return chosenOptions.defaultBehaviour === 'deny' ? denyBehaviour() : true
 }
 
 /*----------  end of code, exporting  ----------*/
