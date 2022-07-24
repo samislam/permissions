@@ -1,13 +1,11 @@
 /*=============================================
 =            importing dependencies            =
 =============================================*/
-const { sendrRes, sendRes } = require('@samislam/sendres')
+const checkTypes = require('@samislam/checktypes')
 
 /*=====  End of importing dependencies  ======*/
 
-function sendErr(res, statusCode, message) {
-  sendRes(statusCode, res, { message })
-}
+const getValue = async (parameter, ...args) => (checkTypes.isAsycOrSyncFunc(parameter) ? await parameter(...args) : parameter)
 
 /*----------  end of code, exporting  ----------*/
-module.exports = sendErr
+module.exports = getValue

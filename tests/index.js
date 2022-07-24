@@ -4,45 +4,45 @@
 const express = require('express')
 const log = require('@samislam/log')
 const { sendRes, sendResMw } = require('@samislam/sendres')
-const { permissionsMw, globalOptions, permissions } = require('../index')
+const { permissionsMw, permissions, Permissions, PermissionsMw } = require('../src/')
 const data = require('./data')
 const expressAsyncHandler = require('express-async-handler')
 /*=====  End of importing dependencies  ======*/
 
-globalOptions.denyMsg = 'Sie sind nicht berechtigt, diese Aktion auszuführen'
-globalOptions.denyStatusCode = 403
-globalOptions.handleError = false
+const customPermissions = new Permissions({
+  denyStatusCode: 244,
+}).method
+const customPermissionsMw = new PermissionsMw({
+  denyMsg: 'lolo',
+}).method
 
 const app = express()
-
 app.use(express.json())
+const router = express.Router()
+app.use('/api/users', router)
 
-app
-  .route('/users')
+router
+  .route('/')
   .get(
-    permissionsMw(
-      async (req) => {
-        console.log(req.body)
-        return true
-      },
-      { defaultBehaviour: 'deny' }
-    ),
+    customPermissionsMw(async (req) => {}, { defaultBehaviour: 'deny', denyStatusCode: 230 }),
     sendResMw(200, { $$data: data })
   )
   .post(
     expressAsyncHandler(async (req, res, next) => {
-      const x = await permissions(() => {}, { defaultBehaviour: 'grant' })
+      const x = await customPermissions(() => {}, { defaultBehaviour: 'deny' })
       log.w(x)
       sendRes(200, res, { message: 'the resource has been created 👍' })
     })
   )
-  .patch()
-  .delete()
+
+router.route('/:id').patch().delete()
 
 app.use((err, req, res, next) => {
-  if (err.name === 'permissions_deny_error') {
+  console.log('error caught ')
+  if (err.name === 'permissionDenyError') {
     sendRes(err.statusCode, res, { message: err.message })
   }
 })
 
+console.clear()
 app.listen(9778, () => log.info(log.label, 'test running on port 9778'))
