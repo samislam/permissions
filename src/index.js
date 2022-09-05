@@ -54,14 +54,16 @@ class PermissionsMw {
       const defaultOptions = {
         defaultBehaviour: 'deny', // 'grant' | 'deny',
         denyMsg: denyDefaultMsg,
+        resBody: {},
         denyStatusCode: 401,
         handlePermissionErr: true,
       }
       _.merge(chosenOptions, defaultOptions, this.options, optionsValue)
 
       const denyBehaviour = () => {
-        if (chosenOptions.handlePermissionErr) return sendRes(chosenOptions.denyStatusCode, res, { message: chosenOptions.denyMsg })
-        else next(new PermissionDenyError(chosenOptions.denyMsg, chosenOptions.denyStatusCode))
+        if (chosenOptions.handlePermissionErr) {
+          return sendRes(chosenOptions.denyStatusCode, res, { message: chosenOptions.denyMsg, ...chosenOptions.resBody })
+        } else next(new PermissionDenyError(chosenOptions.denyMsg, chosenOptions.denyStatusCode))
       }
       if (permissionValue === true) next()
       else if (permissionValue === false) denyBehaviour()

@@ -1,6 +1,6 @@
 {
   "name": "@samislam/permissions",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "permissions is a small and simple nodejs utility for controlling user actions permissions based on a predefined set of rules",
   "main": "./src/index.js",
   "scripts": {
